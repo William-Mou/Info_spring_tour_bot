@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 import telepot
@@ -16,40 +16,43 @@ from random import choice
 import json
 
 
-# In[2]:
-
 #自行更新  #自行更新   #自行更新
-TOKEN = '563854488:AAGOZLDjlWf7jRz869DUVwRzPwsGcfJhYXw' #自行更新
+TOKEN = ''             #自行更新
+password = '9487'      #自行更新
 #自行更新  #自行更新   #自行更新
-
-
-# In[3]:
-
 
 bot = telepot.Bot(TOKEN)
 
-#self:{team<int>, score:<int>, }
+# task[number<int>] = { ans:<string>, score<:int>, }
+task = {}
+# self[username<sting>] = {team<int>, score:<int>, }
 self = {}
-#team:{members<list>, total<int>, task:[<string>, finish<bool>]}, bounus:<int>, }
-team = {1:{"task":{"mission" : False,"score":0}, 
-           "members":[], 
-           "total":0},
-        2:{}
-       }
+# team[team_number<int> = {members<list>, total<int>, task:[<int finish<bool>]}, bounus:<int>, }
+team = {1:{
+          #"task_number" : False, 
+          "members":[], 
+          "total":0},
+        2:{},
+        }
 
-#列印訊息接收log
+# 列印訊息接收log
 def print_msg(msg):
     print(json.dumps(msg, indent=4))
 
-#接收chat後執行：
+# 接收chat後執行：
 def on_chat(msg):
-    #得取基礎資料：訊息類型\聊天室總類\聊天室id
+    # 得取基礎資料：訊息類型\聊天室總類\聊天室id
     header = telepot.glance(msg, flavor="chat")
     print_msg(msg)
     data=""
     if header[0] == "text":
         text = msg["text"]
         username = msg["from"]["username"]
+        try:
+            userteam = self[username]["team"]
+        except:
+            print("userteam err")
+        
         # command
         if text.startswith("/"):
             command = text.lstrip("/")
@@ -58,7 +61,9 @@ def on_chat(msg):
                 text = "OK， {}\n你準備好了...... 讓我們開始一場奇幻冒險ㄅ OwO"
                 bot.sendMessage(header[2], text.format(msg["from"]["first_name"]))
                 bot.sendMessage(header[2], "請先輸入您的組別</team 阿拉伯數字>～\請小心輸入，這會影響你的計分唷～")
-                bot.sendMessage(header[2], "請輸入/list查看得分紀錄，輸入/total 獲取總計分")
+                bot.sendMessage(header[2], "請輸入/list查看得分紀錄，輸入/total 獲取總計分！")
+            
+            # user設定組別
             elif command[:4] == "team":
                 data = command[4:].split()
                 data=int(data[0])
@@ -68,123 +73,66 @@ def on_chat(msg):
                     else:
                         team[self[username][team]].remove(username)
                         team[data]['members'].append(username)
+                        send = "Hello, Your new partner are :"
+                        for j in team[data]:
+                            send += j
+                            send += "\n"
+                        bot.sendMessage(header[2], send)
                 else:
                     self[username] = {"team" : data}
                     team[data]['members'].append(username)
+                    send = "Hello, Your partner are :"
+                    if len(team[data]["members"]) == 1:
+                        bot.sendMessage(header[2], "Your the First!\nGo to help your other partners!")
+                    if len(team[data]["members"]) == 2:
+                        bot.sendMessage(header[2], "Your the Second!\nGo to help your other partners!")    
+                    for j in team[data]["members"]:
+                        send += j
+                        send += "\n"
+                    bot.sendMessage(header[2], send)
                     
-            elif command[:4] == "task":
-                pass
-            elif command[:4] == "list":
-                pass
-            elif command[:5] == "total":
-                pass
-                
-'''
+            # manager 設定題目        
             elif command[:3] == "add":
-                #data=[+-,money,event]
-                data=command[3:].split()
-                if data[0] == '+' or data[0]=='-':
-                    try:
-                        int(data[1])
-                        bot.sendMessage(header[2],"增加收支細項"+str(data[2]))
-                        if header[2] in moneydict:
-                            moneydict[header[2]].append(data)
-                        else:
-                            moneydict[header[2]]=[data]
-                        bot.sendMessage(header[2],"收支帳本"+str(moneydict[header[2]]))
-                    except:
-                        bot.sendMessage(header[2],"請符合格式ouo")
-                else:
-                    bot.sendMessage(header[2],"請符合格式ouo")
-    
-            elif command[:4] == "lend":
-                data=command[4:].split()
-                bot.sendMessage(header[2],"借款給 "+str(data[0])+" "+str(data[1])+"元")
-                if msg["from"]["username"]+"to"+str(data[0][1:]) in lenddict:
-                    lenddict[str(msg["from"]["username"])+"to"+str(data[0][1:])][msg["date"]]=[0,str(data[1])]
-                else:
-                    lenddict[str(msg["from"]["username"])+"to"+str(data[0][1:])]={msg["date"]:[0,str(data[1])]}
-
-                bot.sendMessage(header[2],"請借款人 "+str(data[0])+" 回傳 /borrow @"+str(msg["from"]["username"])+" "+str(msg["date"])+" 驗證")
-                #bot.sendMessage(header[2],str(lenddict))
-
-                
-                if str(msg["from"]["username"])+"to"+str(data[0]) in lenddict:
-                    lenddict[str(msg["from"]["username"])+"to"+str(data[0])]={msg[data]:0}
-                    bot.sendMessage(header[2],0)
-                else:
-                    lenddict[str(msg["from"]["username"])+"to"+str(data[0])]={msg[data]:0}
-                
-            #commond: /borrow @username date
-            elif command[:6] == "borrow":
-                data=command[6:].split()
-                lenddict[data[0][1:]+"to"+msg["from"]["username"]][int(data[1])][0]=1
-                #bot.sendMessage(header[2],str(lenddict))
-                bot.sendMessage(header[2],"提醒：輸入 /payback " + data[0] + " " +data[1]+" 還款")
-                
-            #commond: /payback @username date
-            elif command[:7] == "payback":
-                data=command[7:].split()
-                lenddict[data[0][1:]+"to"+msg["from"]["username"]][int(data[1])][0]=2
-                bot.sendMessage(header[2],"請 "+data[0]+" 確認 @"+str(msg["from"]["username"])+" 是否還款，並輸入 /payok @"+msg["from"]["username"]+" "+str(data[1])+" 確認")
-                
-            #commond: /payok @username date
-            elif command[:5] == "payok":
-                data=command[5:].split()
-                lenddict[msg["from"]["username"]+"to"+data[0][1:]].pop(int(data[1]))
-                bot.sendMessage(header[2],"還款確認完成><資料已核銷")
-                
-            elif command == "list":
-                for i in range(len(moneydict[header[2]])):
-                    bot.sendMessage(header[2],"收支帳本"+str(moneydict[header[2]][i]))
-                    
-            # /ldict @username
-            elif command[:5] == "ldict":
-                data=command[5:].split()
-                if msg["from"]["username"]+"to"+data[0][1:] in lenddict:
-                #for i in lenddict[msg["from"]["username"]+"to"+data[0][1:]]:
-                    for i in lenddict[msg["from"]["username"]+"to"+data[0][1:]]:
-                        if lenddict[msg["from"]["username"]+"to"+data[0][1:]][i][0]==0:
-                            bot.sendMessage(header[2]," 欠款待確認，欠"+str(lenddict[msg["from"]["username"]+"to"+data[0][1:]][i][1])+"元")
-                        elif lenddict[msg["from"]["username"]+"to"+data[0][1:]][i][0]==1:
-                            bot.sendMessage(header[2]," 欠款確認，欠"+str(lenddict[msg["from"]["username"]+"to"+data[0][1:]][i][1])+"元")
-                        elif lenddict[msg["from"]["username"]+"to"+data[0][1:]][i][0]==2:
-                            bot.sendMessage(header[2]," 還款待確認，欠"+str(lenddict[msg["from"]["username"]+"to"+data[0][1:]][i][1])+"元")
-                else:
-                    bot.sendMessage(header[2],str(data[0])+" 暫無欠您的款項")
-                    
-            elif command[:5] == "total":
-                s=0
-                for i in range(len(moneydict[msg['chat']['id']])):
-                    if moneydict[msg['chat']['id']][i][0]=='+':
-                        try:
-                            s+=int(moneydict[msg['chat']['id']][i][1])
-                        except:
-                            pass
+                data = command[3:].split()
+                if len(data) == 4:
+                    if data[0] == password:
+                        task[data[1]] = {"ans" : data[2], "score" : int(data[3]) }
+                        bot.sendMessage(header[2], "Thank you! We have add it to our data base.")
                     else:
-                        try:
-                            s-=int(moneydict[msg['chat']['id']][i][1])
-                        except:
-                            pass
-                bot.sendMessage(header[2],str(msg['chat']['id'])+"總資產："+str(s))
-        # other msg
-        else: 
-            # 我覺得不行！
-            image_url = "https://cdn.pixabay.com/photo/2016/03/22/23/45/money-1273908_960_720.jpg"
-            bot.sendPhoto(header[2], image_url)
-            bot.sendMessage(header[2],"輸入/start查看指令")
-
-            # 回應按鈕
-            replyKeyboard = InlineKeyboardMarkup(inline_keyboard=[
-                [
-                    InlineKeyboardButton(
-                        text="在一個穩定的發揮後，卻得到一個這樣的反饋。我覺得有點失控",
-                        callback_data="test"
-                    )
-                ]
-            ])
-            bot.sendMessage(header[2], text="選擇回應", reply_markup=replyKeyboard)
-'''
+                        bot.sendMessage(header[2], "Please enter the true password !")
+                else:
+                    bot.sendMessage(header[2], "Please enter the correct data!\n/add <password> <task_number> <task_answer> <task_score> !")
+            
+            # user answer the question                     
+            elif command[:4] == "task":
+                [print(task[i][score]) for i in task]
+            elif command[:3] == "ans":
+                data = command[3:].split()
+                task_number = data[0]
+                task_answer = data[1]
+                if task[task_number]["ans"] == task_answer:
+                    if task_number in team[userteam]:
+                        bot.sendMessage(header[2], "You have sended the correct answer...\nGo on to find the next task! ouo")
+                    else:
+                        team[userteam][task_number] = True
+                        team[userteam]["total"] += task[task_number]["score"]
+                        bot.sendMessage(header[2], "Congratulations! You answered the correct answer!\nGo on to find the next task!")
+            
+            # user request the list of team info
+            elif command[:4] == "list":
+                for i in team[userteam]:
+                    send = ""
+                    if i == "members":
+                        send += "partner :"
+                        for j in team[userteam][i]:
+                            send += j
+                            send += " "
+                        send += "\n"
+                    else:
+                        send = str(i)+":"+str(team[userteam][i])
+                    bot.sendMessage(header[2], send)
+            elif command[:5] == "total":
+                bot.sendMessage(header[2],"Your total score is "+ str(team[userteam]['total']) + ".")
 
 MessageLoop(bot, {
     'chat': on_chat,
@@ -192,16 +140,4 @@ MessageLoop(bot, {
 }).run_as_thread()
 
 print('Listening ...')
-
-
-# In[2]:
-
-
-team
-
-
-# In[3]:
-
-
-team[1]
 
