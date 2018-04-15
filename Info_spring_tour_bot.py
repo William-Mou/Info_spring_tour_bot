@@ -17,7 +17,7 @@ import json
 
 
 #自行更新  #自行更新   #自行更新
-TOKEN = '564418250:AAGP4KWEkroKYJEy-ADJ3XqZsZTFkLrey8c'             #自行更新
+TOKEN = ''             #自行更新
 password = '9487'      #自行更新
 #自行更新  #自行更新   #自行更新
 
