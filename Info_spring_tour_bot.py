@@ -17,7 +17,7 @@ import json
 
 
 #自行更新  #自行更新   #自行更新
-TOKEN = ''             #自行更新
+TOKEN = '564418250:AAGP4KWEkroKYJEy-ADJ3XqZsZTFkLrey8c'             #自行更新
 password = '9487'      #自行更新
 #自行更新  #自行更新   #自行更新
 
@@ -60,8 +60,9 @@ def on_chat(msg):
             if command == "start":
                 text = "OK， {}\n你準備好了...... 讓我們開始一場奇幻冒險ㄅ OwO"
                 bot.sendMessage(header[2], text.format(msg["from"]["first_name"]))
-                bot.sendMessage(header[2], "請先輸入您的組別</team 阿拉伯數字>～\請小心輸入，這會影響你的計分唷～")
+                bot.sendMessage(header[2], "請先輸入您的組別 /team <阿拉伯數字>～\n請小心輸入，這會影響你的計分唷～")
                 bot.sendMessage(header[2], "請輸入/list查看得分紀錄，輸入/total 獲取總計分！")
+                bot.sendMessage(header[2], "/ans<題號><答案> 回傳任務答案\n/total 獲取總計分\n/list 查看完整小隊資訊\n")
             
             # user設定組別
             elif command[:4] == "team":
@@ -102,10 +103,8 @@ def on_chat(msg):
                         bot.sendMessage(header[2], "Please enter the true password !")
                 else:
                     bot.sendMessage(header[2], "Please enter the correct data!\n/add <password> <task_number> <task_answer> <task_score> !")
-            
+
             # user answer the question                     
-            elif command[:4] == "task":
-                [print(task[i][score]) for i in task]
             elif command[:3] == "ans":
                 data = command[3:].split()
                 task_number = data[0]
@@ -117,20 +116,25 @@ def on_chat(msg):
                         team[userteam][task_number] = True
                         team[userteam]["total"] += task[task_number]["score"]
                         bot.sendMessage(header[2], "Congratulations! You answered the correct answer!\nGo on to find the next task!")
-            
+                else:
+                    bot.sendMessage(header[2], "Sorry... It's not correct answer 0.0")
             # user request the list of team info
             elif command[:4] == "list":
                 for i in team[userteam]:
                     send = ""
                     if i == "members":
-                        send += "partner :"
+                        send += "partner : "
                         for j in team[userteam][i]:
                             send += j
                             send += " "
                         send += "\n"
+                    elif i == "total":
+                        send = "你隊伍的總分為：" + str(team[userteam][i]) + "分"
                     else:
-                        send = str(i)+":"+str(team[userteam][i])
+                        send = "第 " +str(i) + " 題通過！"
                     bot.sendMessage(header[2], send)
+                    
+            # user request the total score of team        
             elif command[:5] == "total":
                 bot.sendMessage(header[2],"Your total score is "+ str(team[userteam]['total']) + ".")
 
