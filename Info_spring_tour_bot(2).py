@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 import telepot
@@ -37,11 +37,11 @@ team = {1:{
           #"task_number" : 0, 
           "members":[], 
           "total":0},
-        3::{
+        3:{
           #"task_number" : 0, 
           "members":[], 
           "total":0},
-        4::{
+        4:{
           #"task_number" : 0, 
           "members":[], 
           "total":0},
@@ -82,7 +82,7 @@ def on_chat(msg):
                 bot.sendMessage(header[2], text.format(msg["from"]["first_name"]))
                 bot.sendMessage(header[2], "請先輸入您的組別 /team <阿拉伯數字>～\n請小心輸入，這會影響你的計分唷～")
                 bot.sendMessage(header[2], "請輸入/list查看得分紀錄，輸入/total 獲取總計分！")
-                bot.sendMessage(header[2], "/ans<題號><答案> 回傳任務答案\n/total 獲取總計分\n/list 查看完整小隊資訊\n")
+                bot.sendMessage(header[2], "/ans <題號><答案> 回傳任務答案\n/total 獲取總計分\n/list 查看完整小隊資訊\n")
             
             # user設定組別
             elif command[:4] == "team":
@@ -104,9 +104,9 @@ def on_chat(msg):
                     team[data]['members'].append(username)
                     send = "Hello, Your partner are :"
                     if len(team[data]["members"]) == 1:
-                        bot.sendMessage(header[2], "Your the First!\nGo to help your other partners!")
+                        bot.sendMessage(header[2], "You are the First!\nGo to help your other partners!")
                     if len(team[data]["members"]) == 2:
-                        bot.sendMessage(header[2], "Your the Second!\nGo to help your other partners!")    
+                        bot.sendMessage(header[2], "You are the Second!\nGo to help your other partners!")    
                     for j in team[data]["members"]:
                         send += j
                         send += "\n"
@@ -133,8 +133,13 @@ def on_chat(msg):
                 task_answer = data[1]
                 if (not task_number in team[userteam]) or (team[userteam][task_number] >=-3) or (team[userteam][task_number] <-3 and time.time() >= team[userteam]["penalty"]) :                        
                     if task[task_number]["ans"] == task_answer:
-                        if team[userteam][task_number] == 1:
-                            bot.sendMessage(header[2], "You have sended the correct answer...\nGo on to find the next task! ouo")
+                        if task_number in team[userteam]:
+                            if team[userteam][task_number] == 1:
+                                bot.sendMessage(header[2], "You have sended the correct answer...\nGo on to find the next task! ouo")
+                            else:
+                                team[userteam][task_number] = 1
+                                team[userteam]["total"] += task[task_number]["score"]
+                                bot.sendMessage(header[2], "Congratulations! You answered the correct answer!\nGo on to find the next task!")
                         else:
                             team[userteam][task_number] = 1
                             team[userteam]["total"] += task[task_number]["score"]
@@ -200,16 +205,4 @@ MessageLoop(bot, {
 }).run_as_thread()
 
 print('Listening ...')
-
-
-# In[3]:
-
-
-team
-
-
-# In[5]:
-
-
-time.time() >= team[1]["penalty"]
 
