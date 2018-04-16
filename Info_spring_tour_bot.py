@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[ ]:
+# In[1]:
 
 
 import telepot
@@ -14,10 +14,11 @@ from telepot.namedtuple import (
 )
 from random import choice
 import json
-
+import random
+import time
 
 #自行更新  #自行更新   #自行更新
-TOKEN = ''             #自行更新
+TOKEN = '515307683:AAH0TWRT57mBfzHsHHJHZ_aMP1sZwwNr3Tg'             #自行更新
 password = '9487'      #自行更新
 #自行更新  #自行更新   #自行更新
 
@@ -29,10 +30,29 @@ task = {}
 self = {}
 # team[team_number<int> = {members<list>, total<int>, task:[<int finish<bool>]}, bounus:<int>, }
 team = {1:{
-          #"task_number" : False, 
+          #"task_number" : 0, 
           "members":[], 
           "total":0},
-        2:{},
+        2:{
+          #"task_number" : 0, 
+          "members":[], 
+          "total":0},
+        3::{
+          #"task_number" : 0, 
+          "members":[], 
+          "total":0},
+        4::{
+          #"task_number" : 0, 
+          "members":[], 
+          "total":0},
+        5:{
+          #"task_number" : 0, 
+          "members":[], 
+          "total":0},
+        6:{
+          #"task_number" : 0, 
+          "members":[], 
+          "total":0}
         }
 
 # 列印訊息接收log
@@ -97,6 +117,8 @@ def on_chat(msg):
                 data = command[3:].split()
                 if len(data) == 4:
                     if data[0] == password:
+                        if data[2] == 'x':
+                            data[2] = random.randrange(0, 1080503, 2)
                         task[data[1]] = {"ans" : data[2], "score" : int(data[3]) }
                         bot.sendMessage(header[2], "Thank you! We have add it to our data base.")
                     else:
@@ -109,15 +131,28 @@ def on_chat(msg):
                 data = command[3:].split()
                 task_number = data[0]
                 task_answer = data[1]
-                if task[task_number]["ans"] == task_answer:
-                    if task_number in team[userteam]:
-                        bot.sendMessage(header[2], "You have sended the correct answer...\nGo on to find the next task! ouo")
+                if (not task_number in team[userteam]) or (team[userteam][task_number] >=-3) or (team[userteam][task_number] <-3 and time.time() >= team[userteam]["penalty"]) :                        
+                    if task[task_number]["ans"] == task_answer:
+                        if team[userteam][task_number] == 1:
+                            bot.sendMessage(header[2], "You have sended the correct answer...\nGo on to find the next task! ouo")
+                        else:
+                            team[userteam][task_number] = 1
+                            team[userteam]["total"] += task[task_number]["score"]
+                            bot.sendMessage(header[2], "Congratulations! You answered the correct answer!\nGo on to find the next task!")
                     else:
-                        team[userteam][task_number] = True
-                        team[userteam]["total"] += task[task_number]["score"]
-                        bot.sendMessage(header[2], "Congratulations! You answered the correct answer!\nGo on to find the next task!")
+                        if task_number in team[userteam] and team[userteam][task_number] != 1:
+                            if team[userteam][task_number] % 3 == 0:
+                                team[userteam]["penalty"] = time.time()+60
+                                team[userteam][task_number] -= 1
+                                bot.sendMessage(header[2], "You have sent too many answers,\nplease wait " +  str(int(team[userteam]["penalty"]-time.time())) + " seconds and try again!")
+                            else:
+                                team[userteam][task_number] -= 1
+                                bot.sendMessage(header[2], "Sorry... It's also not correct answer. QAQ")
+                        else :
+                            team[userteam][task_number] = -1
+                            bot.sendMessage(header[2], "Sorry... It's not correct answer 0.0")
                 else:
-                    bot.sendMessage(header[2], "Sorry... It's not correct answer 0.0")
+                    bot.sendMessage(header[2], "You have sent too many answers,\nplease wait " +  str(int(team[userteam]["penalty"]-time.time())) + " seconds and try again!")
             # user request the list of team info
             elif command[:4] == "list":
                 for i in team[userteam]:
@@ -130,6 +165,8 @@ def on_chat(msg):
                         send += "\n"
                     elif i == "total":
                         send = "你隊伍的總分為：" + str(team[userteam][i]) + "分"
+                    elif i == "penalty":
+                        send = "你的懲罰時間為：" + str(team[userteam][i]) + "秒"
                     else:
                         send = "第 " +str(i) + " 題通過！"
                     bot.sendMessage(header[2], send)
@@ -137,11 +174,42 @@ def on_chat(msg):
             # user request the total score of team        
             elif command[:5] == "total":
                 bot.sendMessage(header[2],"Your total score is "+ str(team[userteam]['total']) + ".")
+            
+            # /bonus <username> <score>
+            elif command[:5] == "bonus":
+                data = command[5:].split()
+                bonus_user = data[0]
+                bonus_score = int(data[1])
+                userteam = self[bonus_user][team]
+                team[userteam]["total"] += bonus_score
+                bot.sendMessage(header[2],"Congratulations! team " + userteam + " got " + str(bonus_score) + "scores!")
 
+            # /ac <username> <task_number>
+            elif command[:2] == "ac":
+                data = command[2:].split()
+                userteam = self[data[0]][team]
+                team[userteam][data[1]] = True
+                team[userteam]["total"] += task[data[1]][score]
+                bot.sendMessage(header[2],"Congratulations! team " + userteam + " send the correct answer!")
+                                
+            
+                                
 MessageLoop(bot, {
     'chat': on_chat,
     #'callback_query': on_callback_query,
 }).run_as_thread()
 
 print('Listening ...')
+
+
+# In[3]:
+
+
+team
+
+
+# In[5]:
+
+
+time.time() >= team[1]["penalty"]
 
