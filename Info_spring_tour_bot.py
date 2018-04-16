@@ -18,7 +18,7 @@ import random
 import time
 
 #自行更新  #自行更新   #自行更新
-TOKEN = '515307683:AAH0TWRT57mBfzHsHHJHZ_aMP1sZwwNr3Tg'             #自行更新
+TOKEN = '387192003:AAGrL7j7hI7KkHvkmVCyDv94hxhEA4230Oc'             #自行更新
 password = '9487'      #自行更新
 #自行更新  #自行更新   #自行更新
 
@@ -71,8 +71,7 @@ def on_chat(msg):
         try:
             userteam = self[username]["team"]
         except:
-            print("userteam err")
-        
+            print("err")
         # command
         if text.startswith("/"):
             command = text.lstrip("/")
@@ -183,22 +182,29 @@ def on_chat(msg):
             # /bonus <username> <score>
             elif command[:5] == "bonus":
                 data = command[5:].split()
-                bonus_user = data[0]
+                bonus_user = data[0][1:]
                 bonus_score = int(data[1])
-                userteam = self[bonus_user][team]
+                userteam = self[bonus_user]["team"]
                 team[userteam]["total"] += bonus_score
-                bot.sendMessage(header[2],"Congratulations! team " + userteam + " got " + str(bonus_score) + "scores!")
+                bot.sendMessage(header[2],"Congratulations! team " + str(userteam) + " got " + str(bonus_score) + "scores!")
 
             # /ac <username> <task_number>
             elif command[:2] == "ac":
                 data = command[2:].split()
-                userteam = self[data[0]][team]
-                team[userteam][data[1]] = True
-                team[userteam]["total"] += task[data[1]][score]
-                bot.sendMessage(header[2],"Congratulations! team " + userteam + " send the correct answer!")
-                                
-            
-                                
+                userteam = self[data[0][1:]]["team"]
+                if data[1] in team[userteam] :
+                    if team[userteam][data[1]] == True:
+                        bot.sendMessage(header[2],"You have accepted.")
+                    else:
+                        team[userteam][data[1]] = True
+                        team[userteam]["total"] += task[data[1]]['score']
+                        bot.sendMessage(header[2],"Congratulations! team " + userteam + " send the correct answer!")
+
+                else:
+                    team[userteam][data[1]] = True
+                    team[userteam]["total"] += task[data[1]]['score']
+                    bot.sendMessage(header[2],"Congratulations! team " + str(userteam) + " send the correct answer!")
+
 MessageLoop(bot, {
     'chat': on_chat,
     #'callback_query': on_callback_query,
