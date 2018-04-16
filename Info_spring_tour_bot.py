@@ -18,7 +18,7 @@ import random
 import time
 
 #自行更新  #自行更新   #自行更新
-TOKEN = '387192003:AAGrL7j7hI7KkHvkmVCyDv94hxhEA4230Oc'             #自行更新
+TOKEN = ''             #自行更新
 password = '9487'      #自行更新
 #自行更新  #自行更新   #自行更新
 
