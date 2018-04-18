@@ -24,6 +24,7 @@ password = '9487'      #自行更新
 
 bot = telepot.Bot(TOKEN)
 
+admins_list=[]
 # task[number<int>] = { ans:<string>, score<:int>, }
 task = {}
 # self[username<sting>] = {team<int>, score:<int>, }
@@ -83,6 +84,15 @@ def on_chat(msg):
                 bot.sendMessage(header[2], "請輸入/list查看得分紀錄，輸入/total 獲取總計分！")
                 bot.sendMessage(header[2], "/ans <題號><答案> 回傳任務答案\n/total 獲取總計分\n/list 查看完整小隊資訊\n")
             
+            elif command[:3] == "set":
+                if username == 'WilliamMou':
+                    admins_dict=bot.getChatAdministrators (msg['chat']['id'])
+                    for i in admins_dict:
+                        admins_list.append(i['user']['username'])
+                    admins_list = list(set(admins_list))
+                    bot.sendMessage(header[2], "There are admins_list : " + str(admins_list))
+            
+
             # user設定組別
             elif command[:4] == "team":
                 data = command[4:].split()
@@ -93,7 +103,7 @@ def on_chat(msg):
                     else:
                         team[self[username][team]].remove(username)
                         team[data]['members'].append(username)
-                        send = "Hello, Your new partner are :"
+                        send = "Hello, Your new partner are : "
                         for j in team[data]:
                             send += j
                             send += "\n"
@@ -162,11 +172,11 @@ def on_chat(msg):
                 for i in team[userteam]:
                     send = ""
                     if i == "members":
-                        send += "partner : "
+                        send += "partner : \n"
                         for j in team[userteam][i]:
                             send += j
-                            send += " "
-                        send += "\n"
+                            send += "\n"
+                        
                     elif i == "total":
                         send = "你隊伍的總分為：" + str(team[userteam][i]) + "分"
                     elif i == "penalty":
@@ -181,29 +191,31 @@ def on_chat(msg):
             
             # /bonus <username> <score>
             elif command[:5] == "bonus":
-                data = command[5:].split()
-                bonus_user = data[0][1:]
-                bonus_score = int(data[1])
-                userteam = self[bonus_user]["team"]
-                team[userteam]["total"] += bonus_score
-                bot.sendMessage(header[2],"Congratulations! team " + str(userteam) + " got " + str(bonus_score) + "scores!")
+                print(username)
+                if username in admins_list:
+                    data = command[5:].split()
+                    bonus_user = data[0][1:]
+                    bonus_score = int(data[1])
+                    userteam = self[bonus_user]["team"]
+                    team[userteam]["total"] += bonus_score
+                    bot.sendMessage(header[2],"Congratulations! team " + str(userteam) + " got " + str(bonus_score) + " scores!")
 
             # /ac <username> <task_number>
             elif command[:2] == "ac":
                 data = command[2:].split()
                 userteam = self[data[0][1:]]["team"]
-                if data[1] in team[userteam] :
-                    if team[userteam][data[1]] == True:
-                        bot.sendMessage(header[2],"You have accepted.")
+                if username in admins_list:
+                    if data[1] in team[userteam] :
+                        if team[userteam][data[1]] == True:
+                            bot.sendMessage(header[2],"You have accepted.")
+                        else:
+                            team[userteam][data[1]] = True
+                            team[userteam]["total"] += task[data[1]]['score']
+                            bot.sendMessage(header[2],"Congratulations! team " + userteam + " send the correct answer!")
                     else:
                         team[userteam][data[1]] = True
                         team[userteam]["total"] += task[data[1]]['score']
-                        bot.sendMessage(header[2],"Congratulations! team " + userteam + " send the correct answer!")
-
-                else:
-                    team[userteam][data[1]] = True
-                    team[userteam]["total"] += task[data[1]]['score']
-                    bot.sendMessage(header[2],"Congratulations! team " + str(userteam) + " send the correct answer!")
+                        bot.sendMessage(header[2],"Congratulations! team " + str(userteam) + " send the correct answer!")
 
 MessageLoop(bot, {
     'chat': on_chat,
